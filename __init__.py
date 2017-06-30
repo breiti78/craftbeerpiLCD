@@ -31,7 +31,7 @@ def lcdjob():
         lcd.display_string("CraftBeerPi 3.0", 1)
         lcd.display_string(cbpi.get_config_parameter("brewery_name","No Brewery"), 2)
         lcd.display_string("No Brewing Process", 3)
-        lcd.display_string(strftime("%Y-%m-%d %H:%M:%S", gmtime()), 4)
+        lcd.display_string(strftime("%Y-%m-%d %H:%M:%S", time.localtime()), 4)
     pass
 	
 	
