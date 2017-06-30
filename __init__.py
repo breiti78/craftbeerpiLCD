@@ -5,6 +5,9 @@ import logging
 from time import gmtime, strftime
 lcd = lcddriver.lcd()
 
+## Set refresh interval here
+refresh = 5
+
 ##Background Task to load the data
 @cbpi.backgroundtask(key="lcdjob", interval=1)
 def lcdjob():
@@ -24,7 +27,7 @@ def lcdjob():
             lcd.display_string(line2, 2)
             lcd.display_string(line3, 3)
             lcd.display_string(line4, 4)
-            time.sleep(5)
+            time.sleep(refresh)
             lcd.clear()
     
     else:
