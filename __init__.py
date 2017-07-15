@@ -8,6 +8,19 @@ lcd = lcddriver.lcd()
 ## Set refresh interval here
 refresh = 5
 
+import socket
+import fcntl
+import struct
+
+def get_ip_address(ifname):
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    return socket.inet_ntoa(fcntl.ioctl(
+        s.fileno(),
+        0x8915,  # SIOCGIFADDR
+        struct.pack('256s', ifname[:15])
+    )[20:24])
+
+
 ##Background Task to load the data
 @cbpi.backgroundtask(key="lcdjob", interval=1)
 def lcdjob(self):
@@ -33,7 +46,8 @@ def lcdjob(self):
     else:
         lcd.display_string("CraftBeerPi 3.0", 1)
         lcd.display_string(cbpi.get_config_parameter("brewery_name","No Brewery"), 2)
-        lcd.display_string("No Brewing Process", 3)
+        ip=get_ip_address('wlan0')  ## eth0
+        lcd.display_string("IP: %s" % ip, 3)
         lcd.display_string(strftime("%Y-%m-%d %H:%M:%S", time.localtime()), 4)
     pass
 	
