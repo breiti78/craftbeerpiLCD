@@ -14,7 +14,7 @@ refresh = 5
 #get config from parameters: meantime it can be configurated here
 #multidisplay not equal on: only kettle with id1 = x is shown at LCD and it does not pulse
 #multidisplay on: all kettles are shown periodically (as refreshtime is defined)
-multidisplay = "off"
+multidisplay = "on"
 #id1 is the kettlenumber like in hardwaretable in ide defined
 id1 = 1
 
