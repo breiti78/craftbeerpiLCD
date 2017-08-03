@@ -1,9 +1,16 @@
 import i2c_lib
 from time import *
+from modules import app, cbpi
 
 # LCD Address
 #ADDRESS = 0x3F
-ADDRESS = 0x27
+ADDRESS = cbpi.get_config_parameter('LCD_Address', None)
+if ADDRESS is None:
+   cbpi.add_config_parameter("LCD_Address", "0x27", "text", "Add the i2c adress as hex here")
+   ADDRESS = 0x27
+pass
+
+ADDRESS = cbpi.get_config_parameter('LCD_Address', None)
 
 # I2C bus
 BUS = 1
