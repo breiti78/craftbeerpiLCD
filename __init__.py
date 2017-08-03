@@ -36,8 +36,7 @@ def set_parameter_refresh():
 
   ref = cbpi.get_config_parameter('LCD_Refresh', None)
   if ref is None:
-      cbpi.add_config_parameter('LCD_Refresh', 5, , 'Time to remain till next display in sec.', 'Refreshtime in sec')
-      #app.config["LCD_Refresh"] = 5
+      cbpi.add_config_parameter("LCD_Refresh", 5, "number", "Time to remain till next display in sec")
       ref = cbpi.get_config_parameter('LCD_Refresh', None)
   return ref
 
@@ -48,8 +47,8 @@ def set_parameter_multidisplay():
   
   multi = cbpi.get_config_parameter('LCD_Multidisplay', None)
   if multi is None:
-      cbpi.add_config_parameter("LCD_Multidisplay", "keyin on or off", "test 1", "Toggle between all Kettles or show only one Kette constantly, keyin on or off")
-      #app.config["LCD_Multidisplay"] = "on"
+      cbpi.add_config_parameter("LCD_Multidisplay", "on", "select", "Toggle between all Kettles or show only one Kette constantly", ["on","off"])
+      multi=cbpi.get_config_parameter('LCD_Multidisplay', None)
   return multi
 
 multidisplay = str(set_parameter_multidisplay())
@@ -59,14 +58,12 @@ def set_parameter_id1():
   
   kid1 = cbpi.get_config_parameter("LCD_singledisplay", None)
   if kid1 is None:
-      cbpi.add_config_parameter("LCD_singledisplay", 1, "LCD_singledisplay", "Choose Kettle (Number)")
-      #app.config["LCD_singledisplay"] = 1
+      cbpi.add_config_parameter("LCD_singledisplay", 1, "number", "Choose Kettle (Number)")
+      kid1 = cbpi.get_config_parameter('LCD_singledisplay', None)
   return kid1
 
 id1 = int(set_parameter_id1())
 cbpi.app.logger.info("LCDDisplay  - Kettlenumber used %s" % (id1))
-
-
 def get_ip(interface):
     ip_addr = "Not connected"
     so = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
