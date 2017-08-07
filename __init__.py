@@ -48,6 +48,7 @@ def set_parameter_multidisplay():
   multi = cbpi.get_config_parameter('LCD_Multidisplay', None)
   if multi is None:
       cbpi.add_config_parameter("LCD_Multidisplay", "on", "select", "Toggle between all Kettles or show only one Kette constantly", ["on","off"])
+
       multi=cbpi.get_config_parameter('LCD_Multidisplay', None)
   return multi
 
@@ -84,6 +85,20 @@ def get_version_fo(path):
     finally:
         return version
 version = (get_version_fo(""))
+
+bierkrug = (
+        0b00000,
+	      0b00000,
+	      0b11100,
+	      0b11100,
+	      0b11111,
+	      0b11101,
+	      0b11111,
+	      0b11100
+        )
+lcd.create_char(0, bierkrug)
+global bk #variable for on off of the beerglassymbol (BierKrug) doesnot know better than use semioptimal global var.
+bk = 0
 
 ##Background Task to load the data
 @cbpi.backgroundtask(key="lcdjob", interval=0.7)
@@ -148,6 +163,15 @@ def lcdjob(api):
 
             lcd.cursor_pos = (0, 0)
             lcd.write_string(line1)
+            lcd.cursor_pos = (0,19)
+            if bk == 0:        
+                lcd.write_string(u"\x00")
+                global bk
+                bk = 1
+            else:
+                lcd.write_string(u" ")
+                global bk
+                bk = 0
             lcd.cursor_pos = (1, 0)
             lcd.write_string(line2)
             lcd.cursor_pos = (2, 0)
