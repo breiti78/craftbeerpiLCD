@@ -15,7 +15,7 @@ Only displayes one kettle but reacts a little bit faster on temperature changes.
 
 Parameter:
 
-There are several parameter to change in the parameter menue:
+There are several parameter to change in the CBPi-parameter menue:
 
 LCD_Adress: 		
 			This is the adress of the LCD modul. You can detect it by using the following command:  
