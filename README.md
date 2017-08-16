@@ -27,14 +27,15 @@ Parameter
 
 There are several parameter to change in the **CBPi-parameter** menue:
 
-> **LCD_Adress:** 
+> **LCD_Adress:**    
 > This is the adress of the LCD modul. You can detect it by 
 > using the following command:   sudo i2cdetect -y 1 or sudo i2cdetect
 > -y 0.   Default 0x27.
 > 
 > 
-> **LCD_Multidisplay:** 
-> Changes between the 2 modes. "On" means the Multidisplaymode is on. "Off" means singledisplaymode is on. Default "on". 
+> **LCD_Multidisplay:**     
+> Changes between the 2 modes. "On" means the Multidisplaymode is on. 
+> "Off" means singledisplaymode is on. Default "on". 
 > 
 > **LCD_Refresh:**		  
 > In Multidisplay mode this is the time to wait until switching to next displayed kettle. Default 5 sec.
