@@ -1,7 +1,7 @@
 # LCD add-on for CraftBeerPi 3
 
 With this add-on you can display your Brewing steps temperatures on a 20x4 i2c LCD Display.
-This addon onlc works with I2C connected LCD Displays
+This addon only works with I2C connected LCD Displays.
 There are 2 different modes:
 
 Multidisplay:
