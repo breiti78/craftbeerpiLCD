@@ -20,14 +20,14 @@ There are several parameter to change in the CBPi-parameter menue:
 LCD_Adress: 		
 			This is the adress of the LCD modul. You can detect it by using the following command:  
 			sudo i2cdetect -y 1 or sudo i2cdetect -y 0. 
-                    	Default 0x27
+                    	Default 0x27.
 		    
 LCD_Multidisplay: 	
 			Changes between the 2 modes. "On" means the Multidisplaymode is on. "Off" means singledisplaymode is on. 
                     	Default "on".
 		    
 LCD_Refresh:		
-			In Multidisplay mode this is the time to wait until switching to next kettle
+			In Multidisplay mode this is the time to wait until switching to next displayed kettle.
                     	Default 5 sec.
 			
 LCD_Singledisplay: 	
@@ -35,7 +35,7 @@ LCD_Singledisplay:
                     	of kettles starting with 1.
                     	Default is kettle 1.
 
-If no brewing process is running it will show Craftbeer-Version, Brewery name, IP adress and date/time
+If no brewing process is running the LCD Display will show Craftbeer-Version, Brewery name, IP adress and date/time
 
 ## Installation
 
