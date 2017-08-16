@@ -1,4 +1,4 @@
-# LCD add-on for CraftBeerPi 3
+i# LCD add-on for CraftBeerPi 3
 
 With this add-on you can display your Brewing steps temperatures on a 20x4 i2c LCD Display.
 There are 2 different modes:
@@ -8,7 +8,7 @@ The script will loop thru your kettles and display the target and current temper
 In timer Mode it displayes the remaining time of the step when temperature is reached.
 
 Single mode:
-Only displayes one kettle but reacts a lttle bit faster on temperature changes.
+Only displayes one kettle but reacts a little bit faster on temperature changes.
 
 Parameter:
 There are several parameter to change in the parameter menue:
