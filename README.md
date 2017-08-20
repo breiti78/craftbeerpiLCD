@@ -4,7 +4,7 @@ With this add-on you can display your Brewing steps temperatures on a 20x4 i2c L
 This addon only works with I2C connected LCD Displays.
 There are 2 different modes:
 
-Multidisplay
+Multidisplay mode
 -------------
 
 > The script will loop thru your kettles and display the target and
@@ -36,6 +36,7 @@ There are several parameter to change in the **CBPi-parameter** menue:
 > Changes between the 2 modes. "On" means the Multidisplaymode is on. 
 > "Off" means singledisplaymode is on. Default "on". 
 > 
+>
 > **LCD_Refresh:**		  
 > In Multidisplay mode this is the time to wait until switching to next displayed kettle. Default 5 sec.
 > 
@@ -50,7 +51,7 @@ Defaultdisplay
 > If no brewing process is running the LCD Display will show
 > 
 > -CraftBeerPi-Version, 
->-current IP adress 
+>-current IP adress, 
 >-current date/time
 
 ## Installation
@@ -66,5 +67,5 @@ Defaultdisplay
 
 ## Hints
 
-> After changing a LCD_xxxx parameter in the parameters menue or the
-> file always a reboot is required.
+> Changing a LCD_xxxx parameter in the parameters menue or any
+> file in LCDDisplay folder always requires a reboot.
