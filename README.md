@@ -15,11 +15,10 @@ Single mode
 ------------
 
 > Only displayes one kettle but reacts a little bit faster on temperature changes. 
-> In timer Mode it displayes the remaining time of
+> In timer mode it displayes the remaining time of
 > the step (rest) when target temperature is reached.
-> During the heatingphase between steps a small beerglas is blinking in the first row on the right side.
-> During timermode the beerglas disappears and the "countdown" is displayed.
-> **Notice**: Beerglas only indicates that no timer is running, which is usually in the heatingphase.
+> When the heater in on a small beerglas is blinking in the first row on the right side.
+> During timermode the "countdown" is displayed.
 
 
 Parameter
