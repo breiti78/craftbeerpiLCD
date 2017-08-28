@@ -18,16 +18,16 @@ def set_lcd_adress():
 
   ref = cbpi.get_config_parameter('LCD_Adress', None)
   if ref is None:
-      cbpi.add_config_parameter("LCD_Adress", "0x27", "string", "Adress of the LCD, CBPi reboot required")
+      cbpi.add_config_parameter("LCD_Adress", "0x27", "string", "Address of the LCD, CBPi reboot required")
       ref = cbpi.get_config_parameter('LCD_Adress', None)
   if len(ref) != 4:
-      cbpi.notify("LCD Adress is not 4 digits", "Change LCD Adress in parameters", type = "warning", timeout=None)
+      cbpi.notify("LCD Address is not 4 digits", "Change LCD Address in parameters", type = "warning", timeout=None)
       pass
   return ref
 LCDadress = int(set_lcd_adress(),16)
-cbpi.app.logger.info("LCDDisplay  - LCD_Adress %s %s" % (set_lcd_adress(),LCDadress))
+cbpi.app.logger.info("LCDDisplay  - LCD_Address %s %s" % (set_lcd_adress(),LCDadress))
 
-#adress should be something like 0x27, 0x3f etc.
+#address should be something like 0x27, 0x3f etc.
 #comand promt in Raspi: sudo i2cdetect -y 1 or sudo i2cdetect -y 0 to detect the adress
 #The library and driver are taken from RPLCD Project version 1.0
 #The documentation:   http://rplcd.readthedocs.io/en/stable/ very good and readable
@@ -40,7 +40,7 @@ try:
               auto_linebreaks=True,
               backlight_enabled=True)
 except:
-  cbpi.notify("LCD Adress is wrong", "Change LCD Adress in parameters,\n to detect comand promt in Raspi: sudo i2cdetect -y 1", type = "danger", timeout=None)
+  cbpi.notify("LCD Address is wrong", "Change LCD Address in parameters,\n to detect comand promt in Raspi: sudo i2cdetect -y 1", type = "danger", timeout=None)
 
 def set_parameter_refresh():
 
