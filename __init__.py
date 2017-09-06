@@ -229,11 +229,3 @@ def init(cbpi):
             lcd.cursor_pos = (3, 0)
             lcd.write_string((strftime(u"%Y-%m-%d %H:%M:%S", time.localtime())).ljust(20))
         pass
-
-
-    @cbpi.initalizer(order=1)
-    def init_lcddisplay(self):
-        app.config['LCD_Adress'] = set_lcd_adress()
-        app.config['LCD_Refresh'] = set_parameter_refresh()
-        app.config['LCD_Multidisplay'] = set_parameter_multidisplay()
-        app.config['LCD_Singledisplay'] = set_parameter_id1()
