@@ -24,23 +24,6 @@ def set_lcd_adress():
       cbpi.notify("LCD Address is not 4 digits", "Change LCD Address in parameters", type = "warning", timeout=None)
       pass
   return ref
-LCDadress = int(set_lcd_adress(),16)
-cbpi.app.logger.info("LCDDisplay  - LCD_Address %s %s" % (set_lcd_adress(),LCDadress))
-
-#address should be something like 0x27, 0x3f etc.
-#comand promt in Raspi: sudo i2cdetect -y 1 or sudo i2cdetect -y 0 to detect the adress
-#The library and driver are taken from RPLCD Project version 1.0
-#The documentation:   http://rplcd.readthedocs.io/en/stable/ very good and readable
-#Git is here:         https://github.com/dbrgn/RPLCD
-
-try:
-  lcd = CharLCD(i2c_expander='PCF8574', address=LCDadress, port=1,
-              cols=20, rows=4, dotsize=8,
-              charmap='A00',
-              auto_linebreaks=True,
-              backlight_enabled=True)
-except:
-  cbpi.notify("LCD Address is wrong", "Change LCD Address in parameters,\n to detect comand promt in Raspi: sudo i2cdetect -y 1", type = "danger", timeout=None)
 
 def set_parameter_refresh():
 
@@ -50,8 +33,6 @@ def set_parameter_refresh():
       ref = cbpi.get_config_parameter('LCD_Refresh', None)
   return ref
 
-refresh = float(set_parameter_refresh())
-cbpi.app.logger.info("LCDDisplay  - Refeshrate %s" % (refresh))
 
 def set_parameter_multidisplay():
   
@@ -61,8 +42,6 @@ def set_parameter_multidisplay():
       multi=cbpi.get_config_parameter('LCD_Multidisplay', None)
   return multi
 
-multidisplay = str(set_parameter_multidisplay())
-cbpi.app.logger.info("LCDDisplay  - Multidisplay %s" % (multidisplay))
 
 def set_parameter_id1():
   
@@ -72,8 +51,6 @@ def set_parameter_id1():
       kid1 = cbpi.get_config_parameter('LCD_Singledisplay', None)
   return kid1
 
-id1 = int(set_parameter_id1())
-cbpi.app.logger.info("LCDDisplay  - Kettlenumber used %s" % (id1))
 
 def get_ip(interface):
     ip_addr = "Not connected"
@@ -94,25 +71,61 @@ def get_version_fo(path):
         fo.close()
     finally:
         return version
-cbpi_version = (get_version_fo(""))
 
-#building beerglass sign
-bierkrug = (
-              0b00000,
-	      0b00000,
-	      0b11100,
-	      0b11100,
-	      0b11111,
-	      0b11101,
-	      0b11111,
-	      0b11100
-        )
-lcd.create_char(0, bierkrug)
 
-#variable for on off of the beerglassymbol (BierKrug) doesnot know better than use semioptimal global var.
-global bk 
-bk = 0
+@cbpi.initalizer(order=1)
+def init_lcddisplay(self):
+    app.config['LCD_Adress'] = set_lcd_adress()
+	LCDadress = int(set_lcd_adress(),16)
+	cbpi.app.logger.info("LCDDisplay  - LCD_Address %s %s" % (set_lcd_adress(),LCDadress))
 
+	#address should be something like 0x27, 0x3f etc.
+	#comand promt in Raspi: sudo i2cdetect -y 1 or sudo i2cdetect -y 0 to detect the adress
+	#The library and driver are taken from RPLCD Project version 1.0
+	#The documentation:   http://rplcd.readthedocs.io/en/stable/ very good and readable
+	#Git is here:         https://github.com/dbrgn/RPLCD
+
+	try:
+	  lcd = CharLCD(i2c_expander='PCF8574', address=LCDadress, port=1,
+				  cols=20, rows=4, dotsize=8,
+				  charmap='A00',
+				  auto_linebreaks=True,
+				  backlight_enabled=True)
+	except:
+	  cbpi.notify("LCD Address is wrong", "Change LCD Address in parameters,\n to detect comand promt in Raspi: sudo i2cdetect -y 1", type = "danger", timeout=None)
+    
+    app.config['LCD_Refresh'] = set_parameter_refresh()
+	refresh = float(set_parameter_refresh())
+	cbpi.app.logger.info("LCDDisplay  - Refeshrate %s" % (refresh))
+
+    app.config['LCD_Multidisplay'] = set_parameter_multidisplay()
+	multidisplay = str(set_parameter_multidisplay())
+	cbpi.app.logger.info("LCDDisplay  - Multidisplay %s" % (multidisplay))
+
+    app.config['LCD_Singledisplay'] = set_parameter_id1()
+	id1 = int(set_parameter_id1())
+	cbpi.app.logger.info("LCDDisplay  - Kettlenumber used %s" % (id1))
+	
+	get_version_fo()
+	cbpi_version = (get_version_fo(""))
+
+	#building beerglass sign
+	bierkrug = (
+				  0b00000,
+			  0b00000,
+			  0b11100,
+			  0b11100,
+			  0b11111,
+			  0b11101,
+			  0b11111,
+			  0b11100
+			)
+	lcd.create_char(0, bierkrug)
+
+	#variable for on off of the beerglassymbol (BierKrug) doesnot know better than use semioptimal global var.
+	global bk 
+	bk = 0
+	
 ##Background Task to load the data
 @cbpi.backgroundtask(key="lcdjob", interval=0.7)
 def lcdjob(api):
@@ -213,10 +226,3 @@ def lcdjob(api):
         lcd.cursor_pos = (3, 0)
         lcd.write_string((strftime(u"%Y-%m-%d %H:%M:%S", time.localtime())).ljust(20))
     pass
-
-@cbpi.initalizer(order=1)
-def init_lcddisplay(self):
-    app.config['LCD_Adress'] = set_lcd_adress()
-    app.config['LCD_Refresh'] = set_parameter_refresh()
-    app.config['LCD_Multidisplay'] = set_parameter_multidisplay()
-    app.config['LCD_Singledisplay'] = set_parameter_id1()
