@@ -12,7 +12,7 @@ from .contextmanagers import cursor, cleared
 from .gpio import CharLCD as GpioCharLCD
 from i2c import CharLCD
 
-#LCDVERSION = '3.6.4'
+#LCDVERSION = '3.7.0'
 #The library and driver are taken from RPLCD Project version 1.0.
 #The documentation:   http://rplcd.readthedocs.io/en/stable/ very good and readable.
 #Git is here:         https://github.com/dbrgn/RPLCD.
@@ -21,7 +21,7 @@ from i2c import CharLCD
 #LCD_Address should be something like 0x27, 0x3f etc. See parameters.
 #To determine address of LCD use comand promt in Raspi: sudo i2cdetect -y 1 or sudo i2cdetect -y 0
 
-@cbpi.initalizer(order=2100)
+@cbpi.initalizer(order=3000)
 def init(cbpi):
 
     global LCDaddress
@@ -119,101 +119,122 @@ def get_version_fo(path):
         return version
 cbpi_version = (get_version_fo(""))
 
+def show_multidisplay():
+    lcd.clear()
+    s = cbpi.cache.get("active_step")
+    for idx, value in cbpi.cache["kettle"].iteritems():
+        current_sensor_value = (cbpi.get_sensor_value(value.sensor))
 
+        line1 = (u'%s' % (s.name,))[:20]
+
+        #line2 when steptimer is runnig show remaining time and kettlename
+        if s.timer_end is not None:
+            time_remaining = time.strftime(u"%H:%M:%S", time.gmtime(s.timer_end - time.time()))
+            line2 = ((u"%s %s" % ((value.name).ljust(12)[:11], time_remaining)).ljust(20)[:20])
+        else:
+            line2 = ((u'%s' % (value.name,))[:20])
+
+        line3 = (u"Targ. Temp:%6.2f%s" % (float(value.target_temp),(u"°C")))[:20]
+        line4 = (u"Curr. Temp:%6.2f%s" % (float(current_sensor_value),(u"°C")))[:20]
+
+        lcd.cursor_pos = (0, 0)
+        lcd.write_string(line1)
+        lcd.cursor_pos = (1, 0)
+        lcd.write_string(line2)
+        lcd.cursor_pos = (2, 0)
+        lcd.write_string(line3)
+        lcd.cursor_pos = (3, 0)
+        lcd.write_string(line4)
+
+        time.sleep(refresh)
+
+    pass
 
 #variable for on off of the beerglassymbol (BierKrug) doesnot know better than use semioptimal global var.
 global bk 
 bk = 0
 
+def show_singlemode():
+    s = cbpi.cache.get("active_step")
+
+    #read the current temperature of kettle with id1   
+    current_sensor_value_id1 = (cbpi.get_sensor_value(int(cbpi.cache.get("kettle").get(id1).sensor)))
+                            
+    #get the state of the heater of the current kettle
+    heater_of_kettle = int(cbpi.cache.get("kettle").get(id1).heater)
+    #cbpi.app.logger.info("LCDDisplay  - heater id %s" % (heater_of_kettle))
+
+    heater_status = cbpi.cache.get("actors").get(heater_of_kettle).state
+    #cbpi.app.logger.info("LCDDisplay  - heater status (0=off, 1=on) %s" % (heater_status))
+    
+    #line1 the stepname
+    line1 = (u'%s' % (s.name,)).ljust(20)[:20]
+    
+    #line2 when steptimer is runnig show remaining time and kettlename
+    if s.timer_end is not None:
+        time_remaining = time.strftime(u"%H:%M:%S", time.gmtime(s.timer_end - time.time()))
+        line2 = ((u"%s %s" % ((cbpi.cache.get("kettle")[id1].name).ljust(12)[:11],time_remaining)).ljust(20)[:20])
+    else:
+        line2 = ((u'%s' % (cbpi.cache.get("kettle")[id1].name)).ljust(20)[:20])
+
+    line3 = (u"Targ. Temp:%6.2f%s" % (float(cbpi.cache.get("kettle")[id1].target_temp),(u"°C"))).ljust(20)[:20]
+    line4 = (u"Curr. Temp:%6.2f%s" % (float(current_sensor_value_id1),(u"°C"))).ljust(20)[:20]
+    
+
+    lcd.cursor_pos = (0, 0)
+    lcd.write_string(line1)
+    lcd.cursor_pos = (0,19)  
+    if bk == 0 and heater_status != 0:
+        lcd.write_string(u"\x00")
+        global bk
+        bk = 1    
+    else:
+        lcd.write_string(u" ")
+        global bk
+        bk = 0
+    lcd.cursor_pos = (1, 0)
+    lcd.write_string(line2)
+    lcd.cursor_pos = (2, 0)
+    lcd.write_string(line3)
+    lcd.cursor_pos = (3, 0)
+    lcd.write_string(line4)
+
+def show_fermentation_multidisplay():
+    lcd.clear()
+
+    for idx, value in cbpi.cache["fermenter"].iteritems():
+        current_sensor_value = (cbpi.get_sensor_value(value.sensor))
+
+        line1 = (u'%s' % (value.brewname,))[:20]
+        line2 = (u'%s' % (value.name,))[:20]
+        line3 = (u"FTarg. Temp:%6.2f%s" % (float(value.target_temp),(u"°C")))[:20]
+        line4 = (u"FCurr. Temp:%6.2f%s" % (float(current_sensor_value),(u"°C")))[:20]
+
+        lcd.cursor_pos = (0, 0)
+        lcd.write_string(line1)
+        lcd.cursor_pos = (1, 0)
+        lcd.write_string(line2)
+        lcd.cursor_pos = (2, 0)
+        lcd.write_string(line3)
+        lcd.cursor_pos = (3, 0)
+        lcd.write_string(line4)
+
+        time.sleep(refresh)
+
+def is_fermenter_step_running():
+    for key, value in cbpi.cache["fermenter_task"].iteritems():
+        if value.timer_start is None:
+            return "Active"
+        else:
+            None
+
 ##Background Task to load the data
 @cbpi.backgroundtask(key="lcdjob", interval=0.7)
 def lcdjob(api):
-    ## YOUR CODE GOES HERE
+    ## YOUR CODE GOES HERE    
+    ## show_standby() is here because the ip can change 
 
-    s = cbpi.cache.get("active_step")
-
-    if get_ip('wlan0') == "Not connected":
-        ip = get_ip('eth0')
-    else:
-        ip = get_ip('wlan0')
-
-    if s is not None:
-
-        if multidisplay == "on":
-            lcd.clear()
-            for idx, value in cbpi.cache["kettle"].iteritems():
-                current_sensor_value = (cbpi.get_sensor_value(value.sensor))
-
-                line1 = (u'%s' % (s.name,))[:20]
-
-                #line2 when steptimer is runnig show remaining time and kettlename
-                if s.timer_end is not None:
-                    time_remaining = time.strftime(u"%H:%M:%S", time.gmtime(s.timer_end - time.time()))
-                    line2 = ((u"%s %s" % ((value.name).ljust(12)[:11], time_remaining)).ljust(20)[:20])
-                else:
-                    line2 = ((u'%s' % (value.name,))[:20])
-
-                line3 = (u"Targ. Temp:%6.2f%s" % (float(value.target_temp),(u"°C")))[:20]
-                line4 = (u"Curr. Temp:%6.2f%s" % (float(current_sensor_value),(u"°C")))[:20]
-
-                lcd.cursor_pos = (0, 0)
-                lcd.write_string(line1)
-                lcd.cursor_pos = (1, 0)
-                lcd.write_string(line2)
-                lcd.cursor_pos = (2, 0)
-                lcd.write_string(line3)
-                lcd.cursor_pos = (3, 0)
-                lcd.write_string(line4)
-
-                time.sleep(refresh)
-
-                pass
-        else:
-            #singlemode
-            #read the current temperature of kettle with id1
-            
-            current_sensor_value_id1 = (cbpi.get_sensor_value(int(cbpi.cache.get("kettle").get(id1).sensor)))
-                                    
-            #get the state of the heater of the current kettle
-            heater_of_kettle = int(cbpi.cache.get("kettle").get(id1).heater)
-            #cbpi.app.logger.info("LCDDisplay  - heater id %s" % (heater_of_kettle))
-
-            heater_status = cbpi.cache.get("actors").get(heater_of_kettle).state
-            #cbpi.app.logger.info("LCDDisplay  - heater status (0=off, 1=on) %s" % (heater_status))
-            
-            #line1 the stepname
-            line1 = (u'%s' % (s.name,)).ljust(20)[:20]
-            
-            #line2 when steptimer is runnig show remaining time and kettlename
-            if s.timer_end is not None:
-                time_remaining = time.strftime(u"%H:%M:%S", time.gmtime(s.timer_end - time.time()))
-                line2 = ((u"%s %s" % ((cbpi.cache.get("kettle")[id1].name).ljust(12)[:11],time_remaining)).ljust(20)[:20])
-            else:
-                line2 = ((u'%s' % (cbpi.cache.get("kettle")[id1].name)).ljust(20)[:20])
-
-            line3 = (u"Targ. Temp:%6.2f%s" % (float(cbpi.cache.get("kettle")[id1].target_temp),(u"°C"))).ljust(20)[:20]
-            line4 = (u"Curr. Temp:%6.2f%s" % (float(current_sensor_value_id1),(u"°C"))).ljust(20)[:20]
-            
-
-            lcd.cursor_pos = (0, 0)
-            lcd.write_string(line1)
-            lcd.cursor_pos = (0,19)  
-            if bk == 0 and heater_status != 0:
-                lcd.write_string(u"\x00")
-                global bk
-                bk = 1    
-            else:
-                lcd.write_string(u" ")
-                global bk
-                bk = 0
-            lcd.cursor_pos = (1, 0)
-            lcd.write_string(line2)
-            lcd.cursor_pos = (2, 0)
-            lcd.write_string(line3)
-            lcd.cursor_pos = (3, 0)
-            lcd.write_string(line4)
-
-    else:
+    def show_standby():
         lcd.cursor_pos = (0, 0)
         lcd.write_string((u"CraftBeerPi %s" % cbpi_version).ljust(20))
         lcd.cursor_pos = (1, 0)
@@ -222,4 +243,26 @@ def lcdjob(api):
         lcd.write_string((u"IP: %s" % ip).ljust(20)[:20])
         lcd.cursor_pos = (3, 0)
         lcd.write_string((strftime(u"%Y-%m-%d %H:%M:%S", time.localtime())).ljust(20))
+    pass   
+
+    ## This is the main job
+
+    if get_ip('wlan0') == "Not connected":
+        ip = get_ip('eth0')
+    else:
+        ip = get_ip('wlan0')
+
+    s = cbpi.cache.get("active_step")
+    
+    if s is not None and multidisplay == "on":
+        show_multidisplay()
+
+    elif s is not None and multidisplay == "off":
+        show_singlemode()
+
+    elif is_fermenter_step_running() == "Active":
+        show_fermentation_multidisplay()
+
+    else:
+        show_standby()
     pass
