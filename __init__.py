@@ -18,7 +18,7 @@ from i2c import CharLCD
 #Git is here:         https://github.com/dbrgn/RPLCD.
 #This version is needed because of CraftBeerPi3 Commits on Aug 31, 2017. 
 #Commit: Loading all plugins before calling initializer methods. Now also..
-#LCD_Address should be something like 0x27, 0x3f etc. See parameters.
+#LCD_Address should be something like 0x27, 0x3f etc. See parameters in Craftbeerpi3.
 #To determine address of LCD use comand promt in Raspi: sudo i2cdetect -y 1 or sudo i2cdetect -y 0
 
 @cbpi.initalizer(order=3000)
@@ -160,7 +160,7 @@ def show_multidisplay():
 
     pass
 
-#variable for on off of the beerglassymbol (BierKrug) doesnot know better than use semioptimal global var.
+#variable for on off of the beerglassymbol (BierKrug) do not know better than use semioptimal global var.
 global bk 
 bk = 0
 
@@ -213,28 +213,28 @@ def show_fermentation_multidisplay():
     for idx, value in cbpi.cache["fermenter"].iteritems():
         current_sensor_value = (cbpi.get_sensor_value(value.sensor))
 
-        cbpi.app.logger.info("LCDDisplay  - value %s" % (value.id))
+        #cbpi.app.logger.info("LCDDisplay  - value %s" % (value.id))
 
         #get the state of the heater of the current fermenter
         
         heater_of_fermenter = int(cbpi.cache.get("fermenter").get(value.id).heater)
-        cbpi.app.logger.info("LCDDisplay  - fheater id %s" % (heater_of_fermenter))
+        #cbpi.app.logger.info("LCDDisplay  - fheater id %s" % (heater_of_fermenter))
 
         fheater_status = int(cbpi.cache.get("actors").get(heater_of_fermenter).state)
-        cbpi.app.logger.info("LCDDisplay  - fheater status (0=off, 1=on) %s" % (fheater_status))
+        #cbpi.app.logger.info("LCDDisplay  - fheater status (0=off, 1=on) %s" % (fheater_status))
 
         #get the state of the cooler of the current fermenter
                
         cooler_of_fermenter = int(cbpi.cache.get("fermenter").get(value.id).cooler)
-        cbpi.app.logger.info("LCDDisplay  - fcooler id %s" % (cooler_of_fermenter))
+        #cbpi.app.logger.info("LCDDisplay  - fcooler id %s" % (cooler_of_fermenter))
 
         fcooler_status = int(cbpi.cache.get("actors").get(cooler_of_fermenter).state)
-        cbpi.app.logger.info("LCDDisplay  - fcooler status (0=off, 1=on) %s" % (fcooler_status))        
+        #cbpi.app.logger.info("LCDDisplay  - fcooler status (0=off, 1=on) %s" % (fcooler_status))        
         
         line1 = (u'%s' % (value.brewname,))[:20]
         line2 = (u'%s' % (value.name,))[:20]
-        line3 = (u"FTarg. Temp:%6.2f%s" % (float(value.target_temp),(u"°C")))[:20]
-        line4 = (u"FCurr. Temp:%6.2f%s" % (float(current_sensor_value),(u"°C")))[:20]
+        line3 = (u"Targ. Temp:%6.2f%s" % (float(value.target_temp),(u"°C")))[:20]
+        line4 = (u"Curr. Temp:%6.2f%s" % (float(current_sensor_value),(u"°C")))[:20]
 
         lcd.clear()
         lcd.cursor_pos = (0, 0)
