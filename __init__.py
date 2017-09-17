@@ -208,8 +208,7 @@ def show_singlemode():
     lcd.cursor_pos = (3, 0)
     lcd.write_string(line4)
 
-def show_fermentation_multidisplay():    
-
+def show_fermentation_multidisplay():
     for idx, value in cbpi.cache["fermenter"].iteritems():
         current_sensor_value = (cbpi.get_sensor_value(value.sensor))
 
@@ -259,24 +258,23 @@ def is_fermenter_step_running():
             return "active"
         else:
             None
+
+def show_standby(ipdet):
+    lcd.cursor_pos = (0, 0)
+    lcd.write_string((u"CraftBeerPi %s" % cbpi_version).ljust(20))
+    lcd.cursor_pos = (1, 0)
+    lcd.write_string((u'%s' % (cbpi.get_config_parameter('brewery_name','No Brewery'))).ljust(20)[:20])
+    lcd.cursor_pos =(2, 0)
+    lcd.write_string((u"IP: %s" % ipdet).ljust(20)[:20])
+    lcd.cursor_pos = (3, 0)
+    lcd.write_string((strftime(u"%Y-%m-%d %H:%M:%S", time.localtime())).ljust(20))
+pass   
+
            
 ##Background Task to load the data
 @cbpi.backgroundtask(key="lcdjob", interval=0.7)
 def lcdjob(api):
     ## YOUR CODE GOES HERE    
-    ## show_standby() is in the block because the ip can change 
-
-    def show_standby():
-        lcd.cursor_pos = (0, 0)
-        lcd.write_string((u"CraftBeerPi %s" % cbpi_version).ljust(20))
-        lcd.cursor_pos = (1, 0)
-        lcd.write_string((u'%s' % (cbpi.get_config_parameter('brewery_name','No Brewery'))).ljust(20)[:20])
-        lcd.cursor_pos =(2, 0)
-        lcd.write_string((u"IP: %s" % ip).ljust(20)[:20])
-        lcd.cursor_pos = (3, 0)
-        lcd.write_string((strftime(u"%Y-%m-%d %H:%M:%S", time.localtime())).ljust(20))
-    pass   
-
     ## This is the main job
 
     if get_ip('wlan0') == "Not connected":
@@ -296,5 +294,5 @@ def lcdjob(api):
         show_fermentation_multidisplay()
 
     else:
-        show_standby()
+        show_standby(ip)
     pass
