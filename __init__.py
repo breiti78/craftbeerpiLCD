@@ -12,7 +12,7 @@ from .contextmanagers import cursor, cleared
 from .gpio import CharLCD as GpioCharLCD
 from i2c import CharLCD
 
-#LCDVERSION = '3.7.1'
+#LCDVERSION = '3.7.4'
 #The library and driver are taken from RPLCD Project version 1.0.
 #The documentation:   http://rplcd.readthedocs.io/en/stable/ very good and readable.
 #Git is here:         https://github.com/dbrgn/RPLCD.
@@ -20,6 +20,7 @@ from i2c import CharLCD
 #Commit: Loading all plugins before calling initializer methods. Now also..
 #LCD_Address should be something like 0x27, 0x3f etc. See parameters in Craftbeerpi3.
 #To determine address of LCD use comand promt in Raspi: sudo i2cdetect -y 1 or sudo i2cdetect -y 0
+#assembled by JamFfm
 
 @cbpi.initalizer(order=3000)
 def init(cbpi):
@@ -98,14 +99,14 @@ bierkrug = (
         )
 #cooler symbol
 cool = (
+            0b00011,
+            0b11011,
+            0b11000,
             0b00000,
-            0b00100,
-            0b10101,
-            0b01110,
-            0b00100,
-            0b01110,
-            0b10101,
-            0b00100
+            0b00110,
+            0b00110,
+            0b11011,
+            0b11011
         )
 
 def get_ip(interface):
@@ -130,10 +131,13 @@ def get_version_fo(path):
 cbpi_version = (get_version_fo(""))
 
 def show_multidisplay():
-    lcd.clear()
+    
     s = cbpi.cache.get("active_step")
     for idx, value in cbpi.cache["kettle"].iteritems():
         current_sensor_value = (cbpi.get_sensor_value(value.sensor))
+
+        heater_of_kettle = int(cbpi.cache.get("kettle").get(value.id).heater)
+        heater_status = int(cbpi.cache.get("actors").get(heater_of_kettle).state)
 
         line1 = (u'%s' % (s.name,))[:20]
 
@@ -147,8 +151,12 @@ def show_multidisplay():
         line3 = (u"Targ. Temp:%6.2f%s" % (float(value.target_temp),(u"°C")))[:20]
         line4 = (u"Curr. Temp:%6.2f%s" % (float(current_sensor_value),(u"°C")))[:20]
 
+        lcd.clear()
         lcd.cursor_pos = (0, 0)
         lcd.write_string(line1)
+        lcd.cursor_pos = (0,19)
+        if heater_status != 0:
+            lcd.write_string(u"\x00")           
         lcd.cursor_pos = (1, 0)
         lcd.write_string(line2)
         lcd.cursor_pos = (2, 0)
@@ -163,6 +171,7 @@ def show_multidisplay():
 #variable for on off of the beerglassymbol (BierKrug) do not know better than use semioptimal global var.
 global bk 
 bk = 0
+
 
 def show_singlemode():
     s = cbpi.cache.get("active_step")
@@ -192,7 +201,7 @@ def show_singlemode():
     
     lcd.cursor_pos = (0, 0)
     lcd.write_string(line1)
-    lcd.cursor_pos = (0,19)  
+    lcd.cursor_pos = (0,19)
     if bk == 0 and heater_status != 0:
         lcd.write_string(u"\x00")
         global bk
