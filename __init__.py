@@ -6,13 +6,14 @@ import socket
 import fcntl
 import struct
 import warnings
+import datetime
 from time import gmtime, strftime
 from modules import app, cbpi
 from .contextmanagers import cursor, cleared
 from .gpio import CharLCD as GpioCharLCD
 from i2c import CharLCD
 
-#LCDVERSION = '3.7.4'
+#LCDVERSION = '3.7.7'
 #The library and driver are taken from RPLCD Project version 1.0.
 #The documentation:   http://rplcd.readthedocs.io/en/stable/ very good and readable.
 #Git is here:         https://github.com/dbrgn/RPLCD.
@@ -220,7 +221,7 @@ def show_singlemode():
 def show_fermentation_multidisplay():
     for idx, value in cbpi.cache["fermenter"].iteritems():
         current_sensor_value = (cbpi.get_sensor_value(value.sensor))
-
+        
         #cbpi.app.logger.info("LCDDisplay  - value %s" % (value.id))
 
         #get the state of the heater of the current fermenter
@@ -238,9 +239,25 @@ def show_fermentation_multidisplay():
 
         fcooler_status = int(cbpi.cache.get("actors").get(cooler_of_fermenter).state)
         #cbpi.app.logger.info("LCDDisplay  - fcooler status (0=off, 1=on) %s" % (fcooler_status))        
+
+
+        for key, value1 in cbpi.cache["fermenter_task"].iteritems():
+            #cbpi.app.logger.info("LCDDisplay  - statusstep %s" % (value1.state))
+            
+            if value1.timer_start is not None:
+                ftime_remaining = time.strftime(u"%H:%M:%S", time.gmtime(value1.timer_start - time.time()))
+                #cbpi.app.logger.info("LCDDisplay  - remaining Time1 %s" % (ftime_remaining))
+            else:
+                pass 
+
         
         line1 = (u'%s' % (value.brewname,))[:20]
-        line2 = (u'%s' % (value.name,))[:20]
+
+        if value1.timer_start is not None:
+            line2 = ((u"%s %s" % ((value.name).ljust(12)[:11],ftime_remaining))[:20])
+        else:
+            line2 = (u'%s' % (value.name,))[:20]
+        
         line3 = (u"Targ. Temp:%6.2f%s" % (float(value.target_temp),(u"°C")))[:20]
         line4 = (u"Curr. Temp:%6.2f%s" % (float(current_sensor_value),(u"°C")))[:20]
 
@@ -262,11 +279,11 @@ def show_fermentation_multidisplay():
         time.sleep(refresh)
 
 def is_fermenter_step_running():
-    for key, value in cbpi.cache["fermenter_task"].iteritems():
-        if value.timer_start is None:
+    for key, value2 in cbpi.cache["fermenter_task"].iteritems():
+        if value2.state == "A":
             return "active"
         else:
-            None
+            pass
 
 def show_standby(ipdet):
     lcd.cursor_pos = (0, 0)
