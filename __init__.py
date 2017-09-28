@@ -13,7 +13,7 @@ from .contextmanagers import cursor, cleared
 from .gpio import CharLCD as GpioCharLCD
 from i2c import CharLCD
 
-#LCDVERSION = '3.7.7'
+#LCDVERSION = '3.7.8'
 #The library and driver are taken from RPLCD Project version 1.0.
 #The documentation:   http://rplcd.readthedocs.io/en/stable/ very good and readable.
 #Git is here:         https://github.com/dbrgn/RPLCD.
@@ -98,7 +98,7 @@ bierkrug = (
               0b11111,
               0b11100
         )
-#cooler symbol
+#cooler symbol should look like icecubes
 cool = (
             0b00011,
             0b11011,
@@ -242,11 +242,10 @@ def show_fermentation_multidisplay():
 
 
         for key, value1 in cbpi.cache["fermenter_task"].iteritems():
-            #cbpi.app.logger.info("LCDDisplay  - statusstep %s" % (value1.state))
+            #cbpi.app.logger.info("LCDDisplay  - statusstep %s" % (value1.timer_start- time.time()))
             
             if value1.timer_start is not None:
-                ftime_remaining = time.strftime(u"%H:%M:%S", time.gmtime(value1.timer_start - time.time()))
-                #cbpi.app.logger.info("LCDDisplay  - remaining Time1 %s" % (ftime_remaining))
+                ftime_remaining = interval((value1.timer_start- time.time()))
             else:
                 pass 
 
@@ -254,7 +253,7 @@ def show_fermentation_multidisplay():
         line1 = (u'%s' % (value.brewname,))[:20]
 
         if value1.timer_start is not None:
-            line2 = ((u"%s %s" % ((value.name).ljust(12)[:11],ftime_remaining))[:20])
+            line2 = ((u"%s %s" % ((value.name).ljust(8)[:7],ftime_remaining))[:20])
         else:
             line2 = (u'%s' % (value.name,))[:20]
         
@@ -289,14 +288,36 @@ def show_standby(ipdet):
     lcd.cursor_pos = (0, 0)
     lcd.write_string((u"CraftBeerPi %s" % cbpi_version).ljust(20))
     lcd.cursor_pos = (1, 0)
-    lcd.write_string((u'%s' % (cbpi.get_config_parameter('brewery_name','No Brewery'))).ljust(20)[:20])
+    lcd.write_string((u"%s" % (cbpi.get_config_parameter("brewery_name","No Brewery"))).ljust(20)[:20])
     lcd.cursor_pos =(2, 0)
     lcd.write_string((u"IP: %s" % ipdet).ljust(20)[:20])
     lcd.cursor_pos = (3, 0)
     lcd.write_string((strftime(u"%Y-%m-%d %H:%M:%S", time.localtime())).ljust(20))
 pass   
 
-           
+def interval(seconds):
+    """
+    gives back intervall as tuppel
+    
+    @return: (weeks, days, hours, minutes, seconds)
+    """
+    
+    WEEK = 60 * 60 * 24 * 7
+    DAY = 60 * 60 * 24
+    HOUR = 60 * 60
+    MINUTE = 60
+    
+    weeks = seconds // WEEK
+    seconds = seconds % WEEK
+    days = seconds // DAY
+    seconds = seconds % DAY
+    hours = seconds // HOUR
+    seconds = seconds % HOUR
+    minutes = seconds // MINUTE
+    seconds = seconds % MINUTE
+
+    return (u"W%s D%s %s:%s" % (int(weeks), int(days), int(hours), int(minutes)))
+
 ##Background Task to load the data
 @cbpi.backgroundtask(key="lcdjob", interval=0.7)
 def lcdjob(api):
