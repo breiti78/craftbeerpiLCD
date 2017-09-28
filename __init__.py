@@ -13,7 +13,7 @@ from .contextmanagers import cursor, cleared
 from .gpio import CharLCD as GpioCharLCD
 from i2c import CharLCD
 
-#LCDVERSION = '3.7.8'
+#LCDVERSION = '3.7.9'
 #The library and driver are taken from RPLCD Project version 1.0.
 #The documentation:   http://rplcd.readthedocs.io/en/stable/ very good and readable.
 #Git is here:         https://github.com/dbrgn/RPLCD.
@@ -221,8 +221,9 @@ def show_singlemode():
 def show_fermentation_multidisplay():
     for idx, value in cbpi.cache["fermenter"].iteritems():
         current_sensor_value = (cbpi.get_sensor_value(value.sensor))
-        
-        #cbpi.app.logger.info("LCDDisplay  - value %s" % (value.id))
+        #value = modules.fermenter.Fermenter
+        #FermenterId = modules.fermenter.Fermenter.id
+        cbpi.app.logger.info("LCDDisplay  - value %s" % (value.id))
 
         #get the state of the heater of the current fermenter
         
@@ -239,28 +240,25 @@ def show_fermentation_multidisplay():
 
         fcooler_status = int(cbpi.cache.get("actors").get(cooler_of_fermenter).state)
         #cbpi.app.logger.info("LCDDisplay  - fcooler status (0=off, 1=on) %s" % (fcooler_status))        
-
-
-        for key, value1 in cbpi.cache["fermenter_task"].iteritems():
-            #cbpi.app.logger.info("LCDDisplay  - statusstep %s" % (value1.timer_start- time.time()))
-            
-            if value1.timer_start is not None:
-                ftime_remaining = interval((value1.timer_start- time.time()))
-            else:
-                pass 
-
-        
+        lcd.clear()
         line1 = (u'%s' % (value.brewname,))[:20]
 
-        if value1.timer_start is not None:
-            line2 = ((u"%s %s" % ((value.name).ljust(8)[:7],ftime_remaining))[:20])
-        else:
-            line2 = (u'%s' % (value.name,))[:20]
         
+        #line2
+        for key, value1 in cbpi.cache["fermenter_task"].iteritems():
+            #value1 = modules.fermenter.FermenterStep
+            cbpi.app.logger.info("LCDDisplay  - value1 %s" % (value1.fermenter_id))
+            if value1.timer_start is not None and value1.fermenter_id == value.id:
+                ftime_remaining = interval((value1.timer_start- time.time()))
+                line2 = ((u"%s %s" % ((value.name).ljust(8)[:7],ftime_remaining))[:20])              
+            else:
+                line2 = (u'%s' % (value.name,))[:20]
+            pass
+            
         line3 = (u"Targ. Temp:%6.2f%s" % (float(value.target_temp),(u"°C")))[:20]
         line4 = (u"Curr. Temp:%6.2f%s" % (float(current_sensor_value),(u"°C")))[:20]
 
-        lcd.clear()
+        
         lcd.cursor_pos = (0, 0)
         lcd.write_string(line1)
         lcd.cursor_pos = (0,19)
