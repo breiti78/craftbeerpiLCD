@@ -49,8 +49,7 @@ def init(cbpi):
         lcd.create_char(1, cool)
     except:
         cbpi.notify('LCD Address is wrong', 'Change LCD Address in parameters,to detect comand promt in Raspi: sudo i2cdetect -y 1', type = 'danger', timeout=None)
-    global bl
-    bl = 1
+
 #end of init    
 
 def lcd(LCDaddress):
@@ -333,16 +332,11 @@ def lcdjob(api):
     ## YOUR CODE GOES HERE    
     ## This is the main job
 
-#    if get_ip('wlan0') == "Not connected":
-#        ip = get_ip('eth0')
-#    else:
-#        ip = get_ip('wlan0')
-
     if get_ip('wlan0') != 'Not connected':
         ip = get_ip('wlan0')
-    elif get_ip('etho') != 'Not Coonected':
-        ip = get_ip('etho')
-    elif get_ip('enxb827eb488a6e'):
+    elif get_ip('eth0') != 'Not connected':
+        ip = get_ip('eth0')
+    elif get_ip('enxb827eb488a6e')!= 'Not connected':
         ip = get_ip('enxb827eb488a6e')
     else:
         ip ='Not connected'
