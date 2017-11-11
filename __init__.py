@@ -13,7 +13,7 @@ from .contextmanagers import cursor, cleared
 from .gpio import CharLCD as GpioCharLCD
 from i2c import CharLCD
 
-#LCDVERSION = '3.7.10'
+#LCDVERSION = '3.7.11'
 #The library and driver are taken from RPLCD Project version 1.0.
 #The documentation:   http://rplcd.readthedocs.io/en/stable/ very good and readable.
 #Git is here:         https://github.com/dbrgn/RPLCD.
@@ -49,7 +49,8 @@ def init(cbpi):
         lcd.create_char(1, cool)
     except:
         cbpi.notify('LCD Address is wrong', 'Change LCD Address in parameters,to detect comand promt in Raspi: sudo i2cdetect -y 1', type = 'danger', timeout=None)
-
+    global bl
+    bl = 1
 #end of init    
 
 def lcd(LCDaddress):
@@ -111,7 +112,7 @@ cool = (
         )
 
 def get_ip(interface):
-    ip_addr = "Not connected"
+    ip_addr = 'Not connected'
     so = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         ip_addr = socket.inet_ntoa(fcntl.ioctl(so.fileno(), 0x8915, struct.pack('256s', interface[:15]))[20:24])
@@ -332,11 +333,20 @@ def lcdjob(api):
     ## YOUR CODE GOES HERE    
     ## This is the main job
 
-    if get_ip('wlan0') == "Not connected":
-        ip = get_ip('eth0')
-    else:
-        ip = get_ip('wlan0')
+#    if get_ip('wlan0') == "Not connected":
+#        ip = get_ip('eth0')
+#    else:
+#        ip = get_ip('wlan0')
 
+    if get_ip('wlan0') != 'Not connected':
+        ip = get_ip('wlan0')
+    elif get_ip('etho') != 'Not Coonected':
+        ip = get_ip('etho')
+    elif get_ip('enxb827eb488a6e'):
+        ip = get_ip('enxb827eb488a6e')
+    else:
+        ip ='Not connected'
+    
     s = cbpi.cache.get("active_step")
     
     if s is not None and multidisplay == "on":
