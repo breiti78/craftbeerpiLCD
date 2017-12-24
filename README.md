@@ -88,9 +88,13 @@ There are several parameter to change in the **CBPi-parameter** menue:
 > Changing a LCD_xxxx parameter in the parameters menue or any
 > file in LCDDisplay folder always requires a reboot.
 > A new fermenter should have a target temperature and at least one step defined.
-> It my be nessisary to restart craftbeerpi after adding a new fermenter. 
+> It maybe necessary to restart craftbeerpi after adding a new fermenter. 
 > Sometimes it lastes a long time till the fermenterstep starts running. 
-> I don't know why this is happening.  
+> I don't know why this is happening.
+> If the address is right but you still can not see letters displayed:
+  -try to adjust contrast by the screw on the back of the LCD Hardware (I2C Modul)
+  -be shure to provide the LCD hardware with the right ammount of voltage (mostly 5V)
+  -use a strong powersuppy. If you notice LCD fading a bit there is a lack of current
 > Questions can be posed in the Craftbeerpi Usergroup 
 > in Facebook or in the repository
 
