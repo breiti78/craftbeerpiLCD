@@ -13,7 +13,7 @@ from .contextmanagers import cursor, cleared
 from .gpio import CharLCD as GpioCharLCD
 from i2c import CharLCD
 
-#LCDVERSION = '3.7.11'
+#LCDVERSION = '3.7.12'
 #The library and driver are taken from RPLCD Project version 1.0.
 #The documentation:   http://rplcd.readthedocs.io/en/stable/ very good and readable.
 #Git is here:         https://github.com/dbrgn/RPLCD.
@@ -224,21 +224,26 @@ def show_fermentation_multidisplay():
         #INFO value = modules.fermenter.Fermenter
         #INFO FermenterId = modules.fermenter.Fermenter.id
 
-        #get the state of the heater of the current fermenter
-        
-        heater_of_fermenter = int(cbpi.cache.get("fermenter").get(value.id).heater)
-        #cbpi.app.logger.info("LCDDisplay  - fheater id %s" % (heater_of_fermenter))
+        #get the state of the heater of the current fermenter, if there is none, except takes place
+        try:
+            heater_of_fermenter = int(cbpi.cache.get("fermenter").get(value.id).heater)
+            #cbpi.app.logger.info("LCDDisplay  - fheater id %s" % (heater_of_fermenter))
 
-        fheater_status = int(cbpi.cache.get("actors").get(heater_of_fermenter).state)
-        #cbpi.app.logger.info("LCDDisplay  - fheater status (0=off, 1=on) %s" % (fheater_status))
+            fheater_status = int(cbpi.cache.get("actors").get(heater_of_fermenter).state)
+            #cbpi.app.logger.info("LCDDisplay  - fheater status (0=off, 1=on) %s" % (fheater_status))
+        except:
+            fheater_status = 0
 
-        #get the state of the cooler of the current fermenter
+        #get the state of the cooler of the current fermenter, if there is none, except takes place
                
-        cooler_of_fermenter = int(cbpi.cache.get("fermenter").get(value.id).cooler)
-        #cbpi.app.logger.info("LCDDisplay  - fcooler id %s" % (cooler_of_fermenter))
+        try:
+            cooler_of_fermenter = int(cbpi.cache.get("fermenter").get(value.id).cooler)
+            #cbpi.app.logger.info("LCDDisplay  - fcooler id %s" % (cooler_of_fermenter))
 
-        fcooler_status = int(cbpi.cache.get("actors").get(cooler_of_fermenter).state)
-        #cbpi.app.logger.info("LCDDisplay  - fcooler status (0=off, 1=on) %s" % (fcooler_status))        
+            fcooler_status = int(cbpi.cache.get("actors").get(cooler_of_fermenter).state)
+            #cbpi.app.logger.info("LCDDisplay  - fcooler status (0=off, 1=on) %s" % (fcooler_status))
+        except:
+            fcooler_status = 0
 
         line1 = (u'%s' % (value.brewname,))[:20]
      
