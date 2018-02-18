@@ -5,7 +5,17 @@
 With this add-on you can display your Brewing steps temperatures on a 20x4 i2c LCD Display.
 In addition you can display the target-temperatur and current-temperature of each fermenter.
 This addon only works with I2C connected LCD Displays.
-There are 3 different modes:
+There are 4 different modes:
+
+**Defaultdisplay**
+--------------
+
+> If no brewing process is running the LCD Display will show
+> 
+> -CraftBeerPi-Version 
+> -Brewery-name
+> -Current IP adress 
+> -Current date/time
 
 **Multidisplay mode**
 -----------------
@@ -63,15 +73,7 @@ There are several parameter to change in the **CBPi-parameter** menue:
 > Here you can change the kettle to be displayed in single mode. The number is the same as row number  of
 > kettles starting with 1. Default is kettle 1 (probably the first kettle which was defined in hardware).
 
-**Defaultdisplay**
---------------
 
-> If no brewing process is running the LCD Display will show
-> 
-> -CraftBeerPi-Version 
-> -Brewery-name
-> -Current IP adress 
-> -Current date/time
 
 ## Installation
 
@@ -88,7 +90,8 @@ There are several parameter to change in the **CBPi-parameter** menue:
 ## Hints
 
 > Changing a LCD_xxxx parameter in the parameters menue or any
-> file in LCDDisplay folder always requires a reboot.
+> file in LCDDisplay folder usually requires a reboot.
+> Concerning reboot have a look in the comments of the parameters.
 > A new fermenter should have a target temperature and at least one step defined.
 > It maybe necessary to restart craftbeerpi after adding a new fermenter. 
 > Sometimes it lastes a long time till the fermenterstep starts running. 
