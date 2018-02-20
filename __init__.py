@@ -7,21 +7,26 @@ import fcntl
 import struct
 import warnings
 import datetime
+import threading
 from time import gmtime, strftime
 from modules import app, cbpi
 from .contextmanagers import cursor, cleared
 from .gpio import CharLCD as GpioCharLCD
 from i2c import CharLCD
 
-#LCDVERSION = '3.7.12'
-#The library and driver are taken from RPLCD Project version 1.0.
+#LCDVERSION = '3.7.22'
+#The LCD-library and LCD-driver are taken from RPLCD Project version 1.0.
 #The documentation:   http://rplcd.readthedocs.io/en/stable/ very good and readable.
 #Git is here:         https://github.com/dbrgn/RPLCD.
-#This version is needed because of CraftBeerPi3 Commits on Aug 31, 2017. 
-#Commit: Loading all plugins before calling initializer methods. Now also..
 #LCD_Address should be something like 0x27, 0x3f etc. See parameters in Craftbeerpi3.
 #To determine address of LCD use comand promt in Raspi: sudo i2cdetect -y 1 or sudo i2cdetect -y 0
 #assembled by JamFfm
+#17.02.2018 add feature to change Multidispaly <-> Singlediplay without CBPI reboot
+#17.02.2018 add feature to change Kettle Id for Singlediplay without CBPI reboot
+#17.02.2018 add feature to change refresh rate for Multidisplay without CBPI reboot
+#17.02.2018 add feature to change refresh rate for Multidisplay in parameters with choose of value from 1-6s because more than 6s is too much delay in switching actors
+#18.02.2018 improve stability (no value of a temp sensor)
+#
 
 @cbpi.initalizer(order=3000)
 def init(cbpi):
@@ -30,17 +35,18 @@ def init(cbpi):
     LCDaddress = int(set_lcd_address(),16)
     cbpi.app.logger.info('LCDDisplay  - LCD_Address %s %s' % (set_lcd_address(),LCDaddress))
     
-    global refresh
-    refresh = float(set_parameter_refresh())
-    cbpi.app.logger.info('LCDDisplay  - Refreshrate %s' % (refresh))
+    #This is just for the logfile at start
+    refreshlog = float(set_parameter_refresh())
+    cbpi.app.logger.info('LCDDisplay  - Refreshrate %s' % (refreshlog))
 
-    global multidisplay
-    multidisplay = str(set_parameter_multidisplay())
-    cbpi.app.logger.info('LCDDisplay  - Multidisplay %s' % (multidisplay))
+    #This is just for the logfile at start
+    multidisplaylog = str(set_parameter_multidisplay())
+    cbpi.app.logger.info('LCDDisplay  - Multidisplay %s' % (multidisplaylog))
 
-    global id1
-    id1 = int(set_parameter_id1())
-    cbpi.app.logger.info("LCDDisplay  - Kettlenumber used %s" % (id1))
+    #This is just for the logfile at start
+    id1log = int(set_parameter_id1())
+    cbpi.app.logger.info("LCDDisplay  - Kettlenumber used %s" % (id1log))
+
 
     global lcd
     try:
@@ -69,21 +75,21 @@ def set_lcd_address():
 def set_parameter_refresh():
   ref = cbpi.get_config_parameter('LCD_Refresh', None)
   if ref is None:
-      cbpi.add_config_parameter('LCD_Refresh', 5, 'number', 'Time to remain till next display in sec, CBPi reboot required')
+      cbpi.add_config_parameter('LCD_Refresh', 3, 'select', 'Time to remain till next display in sec, NO! CBPi reboot required',[1,2,3,4,5,6])
       ref = cbpi.get_config_parameter('LCD_Refresh', None)
   return ref
 
 def set_parameter_multidisplay():  
   multi = cbpi.get_config_parameter('LCD_Multidisplay', None)
   if multi is None:
-      cbpi.add_config_parameter('LCD_Multidisplay', 'on', 'select', 'Toggle between all Kettles or show only one Kette constantly, CBPi reboot required', ['on','off'])
+      cbpi.add_config_parameter('LCD_Multidisplay', 'on', 'select', 'Toggle between all Kettles or show only one Kette constantly, NO! CBPi reboot required', ['on','off'])
       multi=cbpi.get_config_parameter('LCD_Multidisplay', None)
   return multi
 
 def set_parameter_id1():  
   kid1 = cbpi.get_config_parameter("LCD_Singledisplay", None)
   if kid1 is None:
-      cbpi.add_config_parameter("LCD_Singledisplay", 1, "number", "Choose Kettle (Number), CBPi reboot required")
+      cbpi.add_config_parameter("LCD_Singledisplay", 1, "number", "Choose Kettle (Number), NO! CBPi reboot required")
       kid1 = cbpi.get_config_parameter('LCD_Singledisplay', None)
   return kid1
 
@@ -131,7 +137,7 @@ def get_version_fo(path):
         return version
 cbpi_version = (get_version_fo(""))
 
-def show_multidisplay():
+def show_multidisplay(refresh):
     
     s = cbpi.cache.get("active_step")
     for idx, value in cbpi.cache["kettle"].iteritems():
@@ -149,9 +155,16 @@ def show_multidisplay():
         else:
             line2 = ((u'%s' % (value.name,))[:20])
 
+        #line3 
         line3 = (u"Targ. Temp:%6.2f%s" % (float(value.target_temp),(u"°C")))[:20]
-        line4 = (u"Curr. Temp:%6.2f%s" % (float(current_sensor_value),(u"°C")))[:20]
 
+        #line4 needs errorhandling because there may be tempvalue without sensordates and so it is none and than an error is thrown
+        try:
+            line4 = (u"Curr. Temp:%6.2f%s" % (float(current_sensor_value),(u"°C")))[:20]
+        except:
+            cbpi.app.logger.info("LCDDisplay  - current_sensor_value exception %s" % (current_sensor_value))
+            line4 = (u"Curr. Temp: %s" % (("No Data")))[:20]
+            
         lcd.clear()
         lcd.cursor_pos = (0, 0)
         lcd.write_string(line1)
@@ -164,9 +177,7 @@ def show_multidisplay():
         lcd.write_string(line3)
         lcd.cursor_pos = (3, 0)
         lcd.write_string(line4)
-
         time.sleep(refresh)
-
     pass
 
 #variable for on off of the beerglassymbol (BierKrug) do not know better than use semioptimal global var.
@@ -174,7 +185,9 @@ global bk
 bk = 0
 
 
-def show_singlemode():
+
+def show_singlemode(id1):
+    cbpi.app.logger.info("LCDDisplay  - id1 an Funktion übergeben %s" % (id1))
     s = cbpi.cache.get("active_step")
 
     #read the current temperature of kettle with id1 from parameters  
@@ -197,8 +210,15 @@ def show_singlemode():
     else:
         line2 = ((u'%s' % (cbpi.cache.get("kettle")[id1].name)).ljust(20)[:20])
 
+    #line3
     line3 = (u"Targ. Temp:%6.2f%s" % (float(cbpi.cache.get("kettle")[id1].target_temp),(u"°C"))).ljust(20)[:20]
-    line4 = (u"Curr. Temp:%6.2f%s" % (float(current_sensor_value_id1),(u"°C"))).ljust(20)[:20]
+
+    #line4 needs errorhandling because there may be tempvalue without sensordates and so it is none and than an error is thrown
+    try:
+        line4 = (u"Curr. Temp:%6.2f%s" % (float(current_sensor_value_id1),(u"°C"))).ljust(20)[:20]
+    except:
+        cbpi.app.logger.info("LCDDisplay  - singlemode current_sensor_value_id1 exception %s" % (current_sensor_value_id1))
+        line4 = (u"Curr. Temp: %s" % (("No Data")))[:20]
     
     lcd.cursor_pos = (0, 0)
     lcd.write_string(line1)
@@ -218,7 +238,7 @@ def show_singlemode():
     lcd.cursor_pos = (3, 0)
     lcd.write_string(line4)
 
-def show_fermentation_multidisplay():
+def show_fermentation_multidisplay(refresh):
     for idx, value in cbpi.cache["fermenter"].iteritems():
         current_sensor_value = (cbpi.get_sensor_value(value.sensor))
         #INFO value = modules.fermenter.Fermenter
@@ -244,6 +264,7 @@ def show_fermentation_multidisplay():
             #cbpi.app.logger.info("LCDDisplay  - fcooler status (0=off, 1=on) %s" % (fcooler_status))
         except:
             fcooler_status = 0
+        pass
 
         line1 = (u'%s' % (value.brewname,))[:20]
      
@@ -258,9 +279,17 @@ def show_fermentation_multidisplay():
             elif z == 0:
                 line2 = (u'%s' % (value.name,))[:20]
             pass
-            
+        
+        #line3    
         line3 = (u"Targ. Temp:%6.2f%s" % (float(value.target_temp),(u"°C")))[:20]
-        line4 = (u"Curr. Temp:%6.2f%s" % (float(current_sensor_value),(u"°C")))[:20]
+        
+        #line4 needs errorhandling because there may be tempvalue without sensordates and so it is none and than an error is thrown
+        try:
+            line4 = (u"Curr. Temp:%6.2f%s" % (float(current_sensor_value),(u"°C")))[:20]
+        except:
+            cbpi.app.logger.info("LCDDisplay  - fermentmode current_sensor_value exception %s" % (current_sensor_value))
+            line4 = (u"Curr. Temp: %s" % (("No Data")))[:20]
+        pass
 
         lcd.clear()
         lcd.cursor_pos = (0, 0)
@@ -347,15 +376,19 @@ def lcdjob(api):
         ip ='Not connected'
     
     s = cbpi.cache.get("active_step")
-    
-    if s is not None and multidisplay == "on":
-        show_multidisplay()
 
-    elif s is not None and multidisplay == "off":
-        show_singlemode()
+    refreshTime = float(set_parameter_refresh())
+
+    multidisplay_status = str(set_parameter_multidisplay())
+    
+    if s is not None and multidisplay_status == "on":    
+        show_multidisplay(refreshTime)
+        
+    elif s is not None and multidisplay_status == "off":       
+        show_singlemode(int(set_parameter_id1()))
 
     elif is_fermenter_step_running() == "active":
-        show_fermentation_multidisplay()
+        show_fermentation_multidisplay(refreshTime)
 
     else:
         show_standby(ip)
